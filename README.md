@@ -17,8 +17,8 @@ Decide which digit, 0 to 9, a handwritten character shows, using only an 8 x 8 g
 
 ## c. GitHub repository link
 
-- Repository: `<paste your GitHub repository URL here>`
-- Live Streamlit app: `<paste your Streamlit Community Cloud URL here>`
+- Repository: `(https://github.com/datascientistyashraj/ml-assignment2)`
+- Live Streamlit app: `(https://ml-assignment2-yashraj.streamlit.app/)`
 
 ## d. Models used
 
