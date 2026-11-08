@@ -1,0 +1,11 @@
+# Runtime dependencies for the Streamlit app and the training script.
+# scikit-learn is pinned to 1.8.0 because the saved models in model/ were trained with that version
+# (otherwise Streamlit Cloud installs a newer release). If you retrain in your own environment,
+# change this line to the version you used: run  pip show scikit-learn
+streamlit>=1.30
+scikit-learn==1.8.0
+numpy
+pandas
+matplotlib
+joblib
+jinja2
