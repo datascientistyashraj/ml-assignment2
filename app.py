@@ -32,15 +32,16 @@ st.markdown(
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap');
     html, body, .stApp, [data-testid="stSidebar"], .stApp p, .stApp li, .stApp label, .stApp h1, .stApp h2,
-    .stApp h3, .stApp h4, .stApp button, .stApp input, [data-testid="stMetricLabel"],
-    [data-testid="stMetricValue"], .stTabs [data-baseweb="tab"] {
+    .stApp h3, .stApp h4, .stApp button, .stApp input, .stTabs [data-baseweb="tab"] {
         font-family: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif;
     }
     .stApp h1 { font-weight: 700; font-size: 2.05rem; line-height: 1.2; letter-spacing: -0.01em; }
     .stApp h2, .stApp h3 { font-weight: 700; }
-    [data-testid="stMetricValue"] { font-weight: 700; font-variant-numeric: tabular-nums; }
-    [data-testid="stMetricLabel"] { color: #5C6B80; }
     .stTabs [data-baseweb="tab-list"] { gap: 1.5rem; }
+    .metric-strip { display: flex; flex-wrap: wrap; gap: 0.6rem 2.4rem; margin: 0.2rem 0 0.8rem 0; }
+    .metric-label { font-size: 0.95rem; opacity: 0.7; }
+    .metric-value { font-size: 2.1rem; font-weight: 700; line-height: 1.15; white-space: nowrap;
+                    font-variant-numeric: tabular-nums; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -72,6 +73,15 @@ def read_csv_safely(source):
 
 def slug(text: str) -> str:
     return "".join(ch.lower() if ch.isalnum() else "_" for ch in text).strip("_")
+
+
+def metric_strip_html(metrics: dict) -> str:
+    """The six scores as one row of big numbers. Unlike st.metric, nothing is cut off with '...'; the row wraps instead."""
+    cells = "".join(
+        f'<div class="metric-cell"><div class="metric-label">{name}</div>'
+        f'<div class="metric-value">{"n/a" if pd.isna(value) else f"{value:.4f}"}</div></div>'
+        for name, value in metrics.items())
+    return f'<div class="metric-strip">{cells}</div>'
 
 
 def prediction_table(y, res, meta) -> pd.DataFrame:
@@ -187,6 +197,7 @@ with st.sidebar:
         "Upload a test CSV", type=["csv"],
         help=f"The file needs the {len(meta['features'])} feature columns and the '{meta['target']}' column, "
              "with the same names as the bundled test set.")
+    st.caption("Results appear as soon as a file is uploaded. There is no run button.")
     use_sample = st.checkbox("Use the bundled test set when no file is uploaded", value=True)
     if SAMPLE_PATH.exists():
         st.download_button("Download the bundled test set", SAMPLE_PATH.read_bytes(),
@@ -241,9 +252,7 @@ tab_report, tab_compare, tab_data, tab_about = st.tabs(["Model report", "Compare
 with tab_report:
     res = results[model_name]
     st.subheader(model_name)
-    for col, key in zip(st.columns(len(core.METRICS)), core.METRICS):
-        value = res["metrics"][key]
-        col.metric(key, "n/a" if pd.isna(value) else f"{value:.4f}")
+    st.markdown(metric_strip_html({key: res["metrics"][key] for key in core.METRICS}), unsafe_allow_html=True)
     present = int(len(np.unique(y)))
     if present < 2:
         st.caption("The file holds a single class, so AUC is n/a and MCC is reported as 0 (both need at least two classes).")
